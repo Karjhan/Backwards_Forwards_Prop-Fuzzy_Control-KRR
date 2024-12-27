@@ -1,0 +1,14 @@
+@import '../node_modules/mdb-ui-kit/css/mdb.min.css';
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  max-width: 1920px;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+}

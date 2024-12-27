@@ -1,0 +1,4 @@
+What is the Santa's mood rating? (0-10)
+8
+What is the gift quality rating? (0-10)
+8
