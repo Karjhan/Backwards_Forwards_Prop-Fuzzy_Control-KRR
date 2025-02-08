@@ -3,6 +3,7 @@ import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import FuzzyControlContent from './components/FuzzyControlContent/FuzzyControlContent';
+import BackwardsForwardsContent from './components/BackwardsForwardsContent/BackwardsForwardsContent';
 
 function App() {
   const [openBasic, setOpenBasic] = useState<boolean>(false); 
@@ -24,6 +25,7 @@ function App() {
           <Routes>
             <Route path="/" element={<div>Home Page</div>} />
             <Route path="/fuzzy-control" element={<FuzzyControlContent/>} />
+            <Route path="/backwards-forwards-chaining" element={<BackwardsForwardsContent/>} />
           </Routes>
         </div>
        

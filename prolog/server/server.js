@@ -181,6 +181,90 @@ import('node-fetch').then((module) => {
         }
     });
 
+    app.get('/backwards-forwards-chaining/questions', (req, res) => {
+        const filePath = path.join(backwardsForwardsChainingFolder, 'questions.txt');
+        try {
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+    
+            const lines = fileContent.split('\n').map(line => line.replace(/\r/g, '').trim());
+    
+            return res.json({ questions: lines });
+        } catch (error) {
+            console.error('Error reading questions from file:', error);
+            return res.status(500).json({ status: 'error', message: 'Error reading questions from file' });
+        }
+    });
+
+    app.get('/backwards-forwards-chaining/rules', (req, res) => {
+        const filePath = path.join(backwardsForwardsChainingFolder, 'rules.txt');
+    
+        try{
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error('Error reading rules file:', err);
+                    return res.status(500).json({ error: 'Failed to read rules file' });
+                }
+                const rules = data.split('\n').filter(rule => rule.trim() !== '');
+        
+                res.json({ rules });
+            });
+        }catch (error) {
+            console.error('Error reading rules from file:', error);
+            return res.status(500).json({ status: 'error', message: 'Error reading rules from file' });
+        }
+    });
+
+    app.post('/backwards-forwards-chaining/submit-answers', async (req, res) => {
+        const { method } = req.query;
+        const { answers } = req.body; 
+    
+        if (!method || (method !== 'forward' && method !== 'backward')) {
+            return res.status(400).json({ error: 'Invalid or missing method parameter' });
+        }
+    
+        if (!Array.isArray(answers)) {
+            return res.status(400).json({ error: 'Invalid answers format' });
+        }
+    
+        const inputFilePath = path.join(backwardsForwardsChainingFolder, 'input.txt');
+        const rulesFilePath = path.join(backwardsForwardsChainingFolder, 'rules.txt');
+    
+        try {
+            let updatedContent = [];
+            for (let i = 0; i < answers.length; i++) {
+                const matchedQuestion = answers[i];
+                updatedContent.push(matchedQuestion.answer); 
+            }
+
+            fs.writeFileSync(inputFilePath, updatedContent.join('\n'), 'utf8');
+
+            const requestBody = { 
+                inputFileName: inputFilePath.replace(/\\/g, '/'),
+                rulesFileName: rulesFilePath.replace(/\\/g, '/'),
+                method,
+            };
+            const prologServerResponse = await fetch('http://localhost:3002/backwards-forwards-chaining', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            const prologResultText = await prologServerResponse.text();
+            const match = prologResultText.match(/The politician is (not an establishment figure|an establishment figure)\./);
+            const result = match ? match[0] : 'Unknown result';
+
+            return res.json({
+                status: 'success',  
+                result: result, 
+            });
+        } catch (error) {
+            console.error('Error processing the request:', error);
+            res.status(500).json({ error: 'Failed to process the request' });
+        }
+    });
+
     app.post('/fuzzy-control/submit-answers', async (req, res) => {
         const { answers } = req.body;
         console.log('Received answers:', answers);

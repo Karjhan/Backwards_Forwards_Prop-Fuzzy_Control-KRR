@@ -1,0 +1,4 @@
+[influence, n(high_rank), n(donations_more_than_one_million)].
+[key_policymaker, n(influence), n(authored_bills_more_than_three)].
+[high_lobbying_power, n(key_policymaker), n(old_family)].
+[establishment_figure, n(high_lobbying_power), n(active_years_more_than_10)].

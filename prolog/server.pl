@@ -3,12 +3,14 @@
 :- use_module(library(http/http_json)).
 
 :- ensure_loaded('fuzzy-control/main.pl').
+:- ensure_loaded('backwards-forwards-chaining/solution.pl').
 
 :- debug(http_request).
 
 % Define HTTP handlers
 :- http_handler('/echo', handle_echo, []).
 :- http_handler('/fuzzy-control', handle_solve_fuzzy_control, []).
+:- http_handler('/backwards-forwards-chaining', handle_chaining, []).
 
 % Start the server
 server(Port) :-
@@ -22,6 +24,32 @@ handle_echo(Request) :-
         reply_json_dict(_{status: "success", echo: Dict})
     ;   debug(http_request, 'Failed to parse JSON', []),
         fail
+    ).
+
+% Handle chaining logic request
+handle_chaining(Request) :-
+    debug(http_request, 'Full HTTP request: ~w', [Request]),
+    (   catch(http_read_json_dict(Request, Dict), Error, (reply_error(Error), fail))
+    ->  debug(http_request, 'Parsed JSON: ~w', [Dict]),
+
+        % Extract necessary data from the request body
+        _{inputFileName: InputFileName, rulesFileName: RulesFileName, method: Method} :< Dict,
+
+        % Call start_process and capture the output
+        (   catch(
+                with_output_to(string(Output), 
+                    start_process(InputFileName, RulesFileName, Method)
+                ),
+                Error,
+                (   message_to_string(Error, ErrorMessage),
+                    format('Error processing Prolog: ~w~n', [ErrorMessage]),
+                    fail
+                )
+            )
+        ->  reply_json_dict(_{status: "success", result: Output})
+        ;   reply_json_dict(_{status: "error", message: "Failed to process Prolog logic."})
+        )
+    ;   reply_json_dict(_{status: "error", message: "Invalid JSON input."})
     ).
 
 % Handle fuzzy control logic request
@@ -59,8 +87,6 @@ process_fuzzy_logic(FileName, Output) :-
     ;   debug(http_request, 'File does not exist: ~w', [FileName]),
         Output = "File does not exist."
     ).
-
-
 
 % Generic error response
 reply_error(Error) :-

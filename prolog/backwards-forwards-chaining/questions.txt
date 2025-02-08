@@ -1,0 +1,5 @@
+What is the politician's position? (Options: Senator, Governor, Mayor, Other)
+What is the total amount of donations received by the politician? (Answer: A number in dollars)
+How many bills has the politician authored? (Answer: A number)
+Is the politician part of an old national family? (Answer: Yes / No)
+How many years has the politician been active? (Answer: A number)
